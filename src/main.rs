@@ -28,7 +28,7 @@ struct TokenResponse {
 }
 
 #[derive(Debug, Deserialize)]
-struct TokenResponseError {
+struct ResponseError {
     error: String,
     error_description: String,
 }
@@ -106,13 +106,12 @@ fn get_tokens(auth_code: String, config: &Config) -> Result<TokenResponse, Strin
     let failed_response: Option<Response>;
     match request {
         Ok(response) => {
-            let token_data: TokenResponse = response.into_json().map_err(|e| e.to_string())?;
-            return Ok(token_data);
+            return Ok(response.into_json().map_err(|e| e.to_string())?);
         }
         Err(response_err) => failed_response = response_err.into_response(),
     }
     if let Some(response) = failed_response {
-        let error_data: TokenResponseError = response.into_json().map_err(|e| e.to_string())?;
+        let error_data: ResponseError = response.into_json().map_err(|e| e.to_string())?;
         return Err(format!("Spotify returned the following while authenticating your account: {} ({}), please try again.", error_data.error_description, error_data.error));
     }
     return Err(String::from("Unknown Error"));
