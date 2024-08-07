@@ -33,32 +33,32 @@ struct ResponseError {
     error_description: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct SpotifyAlbumImage {
     url: String,
     height: u32,
     width: u32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct SpotifyArtist {
     name: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct SpotifyAlbum {
     name: String,
     images: Vec<SpotifyAlbumImage>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct SpotifyItem {
     artists: Vec<SpotifyArtist>,
     album: SpotifyAlbum,
     name: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct PlaybackState {
     is_playing: bool,
     item: SpotifyItem,
