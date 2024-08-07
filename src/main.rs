@@ -117,11 +117,60 @@ fn get_tokens(auth_code: String, config: &Config) -> Result<TokenResponse, Strin
     return Err(String::from("Unknown Error"));
 }
 
-fn get_playback(config: &Config) -> Result<(), String> {
-    // get time
-    // check if current time is less than expiry, fallback and refresh if not
-    // use the
-    Ok(())
+fn refresh_tokens(config: &Config) -> Result<(), String> {
+    if config.access_token != "" && config.refresh_token != "" && config.expires_at != 0 {
+        let request = ureq::post("https://accounts.spotify.com/api/token")
+            .set(
+                "Authorization",
+                &format!(
+                    "Basic {}",
+                    URL_SAFE.encode(format!("{}:{}", config.client_id, config.client_secret))
+                ),
+            )
+            .send_form(&[
+                ("grant_type", "refresh_token"),
+                ("refresh_token", &config.refresh_token),
+            ]);
+        let failed_response: Option<Response>;
+        match request {
+            Ok(response) => {
+                return Ok(response.into_json().map_err(|e| e.to_string())?);
+            }
+            Err(response_err) => failed_response = response_err.into_response(),
+        }
+        if let Some(response) = failed_response {
+            let error_data: ResponseError = response.into_json().map_err(|e| e.to_string())?;
+            return Err(format!("Spotify returned the following while refreshing access to your account: {} ({}), please try again.", error_data.error_description, error_data.error));
+        }
+        return Err(String::from("Unknown Error"));
+    } else {
+        return Err(String::from("Unknown Error"));
+    }
+}
+
+fn get_playback(config: &Config) -> Result<PlaybackState, String> {
+    let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let expiry_time = Duration::from_secs(config.expires_at);
+    if current_time < expiry_time {
+        let request = ureq::get("https://api.spotify.com/v1/me/player")
+            .set("Authorization", &format!("Bearer {}", config.access_token))
+            .call();
+        let failed_response: Option<Response>;
+        match request {
+            Ok(response) => {
+                return Ok(response.into_json().map_err(|e| e.to_string())?);
+            }
+            Err(response_err) => failed_response = response_err.into_response(),
+        }
+        if let Some(response) = failed_response {
+            let error_data: ResponseError = response.into_json().map_err(|e| e.to_string())?;
+            return Err(format!("Spotify returned the following while requesting the playback state on behalf of your account: {} ({}), please try again.", error_data.error_description, error_data.error));
+        }
+    } else {
+        refresh_tokens(config)?;
+        return get_playback(config);
+    }
+    return Err(String::from("Unknown Error"));
 }
 
 fn main() {
