@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ureq = "2.10.0"
+base64 = "0.22.1"
+confy = "0.6.1"
+serde = "1.0.204"
+serde_derive = "1.0.204"
+ureq = { version = "2.10.0", features = ["json"] }
