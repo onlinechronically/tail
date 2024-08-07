@@ -33,6 +33,37 @@ struct TokenResponseError {
     error_description: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct SpotifyAlbumImage {
+    url: String,
+    height: u32,
+    width: u32,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpotifyArtist {
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpotifyAlbum {
+    name: String,
+    images: Vec<SpotifyAlbumImage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpotifyItem {
+    artists: Vec<SpotifyArtist>,
+    album: SpotifyAlbum,
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct PlaybackState {
+    is_playing: bool,
+    item: SpotifyItem,
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
