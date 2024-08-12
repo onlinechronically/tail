@@ -88,6 +88,15 @@ fn config_load(custom_path: Option<String>) -> Result<Config, String> {
     }
 }
 
+fn config_save(custom_path: Option<String>, config: Config) -> Result<(), String> {
+    if let Some(_) = custom_path {
+        Err(String::from("no impl"))
+    } else {
+        confy::store("tail_spotify", None, config).map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+
 fn get_tokens(auth_code: String, config: &Config) -> Result<TokenResponse, String> {
     let request = ureq::post("https://accounts.spotify.com/api/token")
         .set(
