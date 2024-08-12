@@ -183,9 +183,6 @@ fn get_playback(config: &Config) -> Result<PlaybackState, String> {
 
 fn main() {
     let mut input_args: Vec<String> = env::args().collect();
-    dbg!(&input_args);
-    input_args.remove(0);
-    dbg!(&input_args);
     let mut config_path: Option<String> = None;
     for i in 0..input_args.len() {
         if (&input_args[i]).starts_with("") {
@@ -222,6 +219,9 @@ fn main() {
             println!("no impl (cycle)")
         }
     } else {
-        println!("{}", config.unwrap_err())
+        println!(
+            "There was an error loading the config: {}",
+            config.unwrap_err()
+        )
     }
 }
