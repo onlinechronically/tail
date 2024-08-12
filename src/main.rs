@@ -84,7 +84,6 @@ fn config_load(custom_path: Option<String>) -> Result<Config, String> {
         let cfg: Config = confy::load("tail_spotify", None).map_err(|e| e.to_string())?;
         let file =
             confy::get_configuration_file_path("tail_spotify", None).map_err(|e| e.to_string())?;
-        println!("Config Loaded ({})", file.display());
         Ok(cfg)
     }
 }
