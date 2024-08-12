@@ -183,6 +183,7 @@ fn get_playback(config: &Config) -> Result<PlaybackState, String> {
 
 fn main() {
     let mut input_args: Vec<String> = env::args().collect();
+    input_args.remove(0);
     let mut config_path: Option<String> = None;
     for i in 0..input_args.len() {
         if (&input_args[i]).starts_with("") {
