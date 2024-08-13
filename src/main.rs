@@ -194,7 +194,7 @@ fn main() {
     }
     let config = config_load(config_path);
     if let Ok(mut cfg) = config {
-        if cfg.access_token == "" || cfg.refresh_token == "" {
+        if mode == Action::SETUP || (cfg.access_token == "" || cfg.refresh_token == "") {
             println!("Authroize your Spotify account via: https://accounts.spotify.com/authorize?client_id={}&response_type=code&redirect_uri={}&scope=user-read-currently-playing%20user-read-playback-state", cfg.client_id, cfg.redirect_uri);
             let mut auth_code = String::new();
             match io::stdin().read_line(&mut auth_code) {
