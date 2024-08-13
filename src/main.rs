@@ -77,6 +77,14 @@ impl Default for Config {
     }
 }
 
+#[derive(PartialEq)]
+enum Action {
+    DEFAULT,
+    SETUP,
+    PLAYBACK,
+    HELP,
+}
+
 fn config_load(custom_path: Option<String>) -> Result<Config, String> {
     if let Some(_) = custom_path {
         Err(String::from("no impl"))
@@ -185,10 +193,17 @@ fn main() {
     let mut input_args: Vec<String> = env::args().collect();
     input_args.remove(0);
     let mut config_path: Option<String> = None;
+    let mut mode: Action = Action::DEFAULT;
     for i in 0..input_args.len() {
         if (&input_args[i]).starts_with("") {
             if &input_args[i] == "--config" && config_path == None {
                 config_path = Some(input_args[i + 1].clone());
+            } else if &input_args[i] == "--setup" && mode == Action::DEFAULT {
+                mode = Action::SETUP;
+            } else if &input_args[i] == "--json" && mode == Action::DEFAULT {
+                mode = Action::PLAYBACK;
+            } else if &input_args[i] == "--help" {
+                mode = Action::HELP;
             }
         }
     }
