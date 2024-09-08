@@ -260,6 +260,46 @@ fn main() {
                 }
             }
         } else if mode == Action::DEFAULT || mode == Action::PLAYBACK {
+            let playback = get_playback(&mut cfg);
+            let cfg_status = config_save(None, cfg);
+            match cfg_status {
+                Ok(_) => {}
+                Err(cfg_err) => {
+                    panic!(
+                        "There was an error while saving the config file: {}",
+                        cfg_err
+                    );
+                }
+            }
+            match playback {
+                Ok(playback_status) => {
+                    match playback_status {
+                        Some(playback_data) => {
+                            if mode == Action::DEFAULT && playback_data.is_playing {
+                                println!(
+                                    "{} - {}",
+                                    playback_data.item.name, playback_data.item.artists[0].name
+                                );
+                            } else if mode == Action::PLAYBACK {
+                                let stringified: Result<String, String> =
+                                    serde_json::to_string(&playback_data)
+                                        .map_err(|e| e.to_string());
+                                match stringified {
+                                    Ok(json_data) => println!("{}", json_data),
+                                    Err(err_data) => println!("There was an error converting the playback data to JSON: {}", err_data),
+                                }
+                            } else {
+                                println!("No Music Playing");
+                            }
+                        }
+                        None => println!("No Music Playing"),
+                    }
+                }
+                Err(playback_err) => panic!(
+                    "There was an error requesting playback data from Sptoify: {}",
+                    playback_err
+                ),
+            }
         } else if mode == Action::HELP {
             dbg!(help_fields);
         }
