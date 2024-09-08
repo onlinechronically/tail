@@ -204,6 +204,10 @@ fn get_playback(config: &mut Config) -> Result<Option<PlaybackState>, String> {
 
 fn main() {
     let mut input_args: Vec<String> = env::args().collect();
+    let help_fields: [(&str, &str); 2] = [
+        ("--config", "With this flag, you can pass a file location to a .toml file, to use a config other than the one located at the default location."),
+        ("--setup", "Run tail with this flag, to go through the initial setup process, requiring the user to login with Spotify. Note: this must be ran before using any features that interact with the Spotify API.")
+    ];
     input_args.remove(0);
     let mut config_path: Option<String> = None;
     let mut mode: Action = Action::DEFAULT;
