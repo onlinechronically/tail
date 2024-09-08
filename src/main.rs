@@ -28,6 +28,12 @@ struct TokenResponse {
 }
 
 #[derive(Debug, Deserialize)]
+struct RefreshTokenResponse {
+    access_token: String,
+    expires_in: u64,
+}
+
+#[derive(Debug, Deserialize)]
 struct ResponseError {
     error: String,
     error_description: String,
@@ -150,7 +156,13 @@ fn refresh_tokens(config: &mut Config) -> Result<(), String> {
         let failed_response: Option<Response>;
         match request {
             Ok(response) => {
-                return Ok(response.into_json().map_err(|e| e.to_string())?);
+                let refresh_data: RefreshTokenResponse =
+                    response.into_json().map_err(|e| e.to_string())?;
+                config.access_token = refresh_data.access_token;
+                let expiry_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+                    + Duration::from_secs(refresh_data.expires_in);
+                config.expires_at = expiry_time.as_secs();
+                return Ok(());
             }
             Err(response_err) => failed_response = response_err.into_response(),
         }
