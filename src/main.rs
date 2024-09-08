@@ -105,7 +105,7 @@ fn config_save(custom_path: Option<String>, config: Config) -> Result<(), String
     }
 }
 
-fn get_tokens(auth_code: String, config: &Config) -> Result<TokenResponse, String> {
+fn get_tokens(auth_code: String, config: &mut Config) -> Result<TokenResponse, String> {
     let request = ureq::post("https://accounts.spotify.com/api/token")
         .set(
             "Authorization",
@@ -133,7 +133,7 @@ fn get_tokens(auth_code: String, config: &Config) -> Result<TokenResponse, Strin
     return Err(String::from("Unknown Error"));
 }
 
-fn refresh_tokens(config: &Config) -> Result<(), String> {
+fn refresh_tokens(config: &mut Config) -> Result<(), String> {
     if config.access_token != "" && config.refresh_token != "" && config.expires_at != 0 {
         let request = ureq::post("https://accounts.spotify.com/api/token")
             .set(
@@ -164,7 +164,7 @@ fn refresh_tokens(config: &Config) -> Result<(), String> {
     }
 }
 
-fn get_playback(config: &Config) -> Result<PlaybackState, String> {
+fn get_playback(config: &mut Config) -> Result<Option<PlaybackState>, String> {
     let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let expiry_time = Duration::from_secs(config.expires_at);
     if current_time < expiry_time {
@@ -173,9 +173,10 @@ fn get_playback(config: &Config) -> Result<PlaybackState, String> {
             .call();
         let failed_response: Option<Response>;
         match request {
-            Ok(response) => {
-                return Ok(response.into_json().map_err(|e| e.to_string())?);
-            }
+            Ok(response) => match response.status() {
+                200 => return Ok(Some(response.into_json().map_err(|e| e.to_string())?)),
+                _ => return Ok(None),
+            },
             Err(response_err) => failed_response = response_err.into_response(),
         }
         if let Some(response) = failed_response {
@@ -219,7 +220,7 @@ fn main() {
             if auth_code == "" {
                 panic!("There was an error parsing your input");
             }
-            match get_tokens(auth_code, &cfg) {
+            match get_tokens(auth_code, &mut cfg) {
                 Ok(token_data) => {
                     cfg.access_token = token_data.access_token.clone();
                     cfg.refresh_token = token_data.refresh_token.clone();
