@@ -248,7 +248,6 @@ fn main() {
                     panic!("Error: {}", auth_err);
                 }
             }
-        } else {
             match config_save(None, cfg) {
                 Ok(_) => {
                     println!("Config Saved.")
@@ -260,6 +259,9 @@ fn main() {
                     );
                 }
             }
+        } else if mode == Action::DEFAULT || mode == Action::PLAYBACK {
+        } else if mode == Action::HELP {
+            dbg!(help_fields);
         }
     } else {
         println!(
