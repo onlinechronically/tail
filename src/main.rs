@@ -249,7 +249,17 @@ fn main() {
                 }
             }
         } else {
-            println!("no impl (cycle)")
+            match config_save(None, cfg) {
+                Ok(_) => {
+                    println!("Config Saved.")
+                }
+                Err(cfg_err) => {
+                    panic!(
+                        "There was an error while saving the config file: {}",
+                        cfg_err
+                    );
+                }
+            }
         }
     } else {
         println!(
