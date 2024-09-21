@@ -1,4 +1,5 @@
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
+use clap::Parser;
 use std::{
     env, io,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -83,12 +84,23 @@ impl Default for Config {
     }
 }
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Use this flag to run the initial Spotify login process
+    #[arg(short, long)]
+    setup: bool,
+
+    /// Use this flag to output the information to a file in JSON format
+    #[arg(short, long)]
+    json: bool,
+}
+
 #[derive(PartialEq)]
 enum Action {
     DEFAULT,
     SETUP,
     PLAYBACK,
-    HELP,
 }
 
 fn config_load(custom_path: Option<String>) -> Result<Config, String> {
@@ -203,26 +215,13 @@ fn get_playback(config: &mut Config) -> Result<Option<PlaybackState>, String> {
 }
 
 fn main() {
-    let mut input_args: Vec<String> = env::args().collect();
-    let help_fields: [(&str, &str); 2] = [
-        ("--config", "With this flag, you can pass a file location to a .toml file, to use a config other than the one located at the default location."),
-        ("--setup", "Run tail with this flag, to go through the initial setup process, requiring the user to login with Spotify. Note: this must be ran before using any features that interact with the Spotify API.")
-    ];
-    input_args.remove(0);
+    let args = Args::parse();
     let mut config_path: Option<String> = None;
     let mut mode: Action = Action::DEFAULT;
-    for i in 0..input_args.len() {
-        if (&input_args[i]).starts_with("") {
-            if &input_args[i] == "--config" && config_path == None {
-                config_path = Some(input_args[i + 1].clone());
-            } else if &input_args[i] == "--setup" && mode == Action::DEFAULT {
-                mode = Action::SETUP;
-            } else if &input_args[i] == "--json" && mode == Action::DEFAULT {
-                mode = Action::PLAYBACK;
-            } else if &input_args[i] == "--help" {
-                mode = Action::HELP;
-            }
-        }
+    if args.setup {
+        mode = Action::SETUP
+    } else if args.json {
+        mode = Action::PLAYBACK;
     }
     let config = config_load(config_path);
     if let Ok(mut cfg) = config {
@@ -300,8 +299,6 @@ fn main() {
                     playback_err
                 ),
             }
-        } else if mode == Action::HELP {
-            dbg!(help_fields);
         }
     } else {
         println!(
