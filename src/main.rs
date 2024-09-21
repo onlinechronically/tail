@@ -1,10 +1,10 @@
 use base64::{engine::general_purpose::URL_SAFE, Engine as _};
 use clap::Parser;
 use std::{
-    env, io,
+    io,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use ureq::Response;
+use ureq::{Error, Response};
 
 extern crate confy;
 
@@ -195,23 +195,30 @@ fn get_playback(config: &mut Config) -> Result<Option<PlaybackState>, String> {
         let request = ureq::get("https://api.spotify.com/v1/me/player")
             .set("Authorization", &format!("Bearer {}", config.access_token))
             .call();
-        let failed_response: Option<Response>;
         match request {
             Ok(response) => match response.status() {
-                200 => return Ok(Some(response.into_json().map_err(|e| e.to_string())?)),
+                200 => {
+                    return Ok(Some(response.into_json().map_err(|e| e.to_string())?));
+                }
                 _ => return Ok(None),
             },
-            Err(response_err) => failed_response = response_err.into_response(),
-        }
-        if let Some(response) = failed_response {
-            let error_data: ResponseError = response.into_json().map_err(|e| e.to_string())?;
-            return Err(format!("Spotify returned the following while requesting the playback state on behalf of your account: {} ({}), please try again.", error_data.error_description, error_data.error));
+            Err(error) => match error {
+                Error::Status(_, response) => {
+                    let error_string: String = response.into_string().map_err(|e| e.to_string())?;
+                    let error_data: Result<ResponseError, String> =
+                        serde_json::from_str(&error_string).map_err(|e| e.to_string());
+                    match error_data {
+                        Ok(error_json) => return Err(format!("Spotify returned the following while requesting the playback state on behalf of your account: {} ({}), please try again.", error_json.error_description, error_json.error)),
+                        Err(_) => return Err(format!("Spotify returned the following while requesting the playback state on behalf of your account: {}, please try again.", error_string)),
+                    }
+                }
+                _ => return Err(String::from("Unknown Error")),
+            },
         }
     } else {
         refresh_tokens(config)?;
         return get_playback(config);
     }
-    return Err(String::from("Unknown Error"));
 }
 
 fn main() {
