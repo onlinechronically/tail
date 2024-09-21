@@ -294,10 +294,7 @@ fn main() {
                         None => println!("No Music Playing"),
                     }
                 }
-                Err(playback_err) => panic!(
-                    "There was an error requesting playback data from Sptoify: {}",
-                    playback_err
-                ),
+                Err(playback_err) => println!("{}", playback_err),
             }
         }
     } else {
