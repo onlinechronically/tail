@@ -295,10 +295,22 @@ fn main() {
                                     Err(err_data) => println!("There was an error converting the playback data to JSON: {}", err_data),
                                 }
                             } else {
+                                if mode == Action::PLAYBACK {
+                                    let nothing_playing = "{\"is_playing\":false}";
+                                    println!("{}", nothing_playing);
+                                } else {
+                                    println!("No Music Playing");
+                                }
+                            }
+                        }
+                        None => {
+                            if mode == Action::PLAYBACK {
+                                let nothing_playing = "{\"is_playing\":false}";
+                                println!("{}", nothing_playing);
+                            } else {
                                 println!("No Music Playing");
                             }
                         }
-                        None => println!("No Music Playing"),
                     }
                 }
                 Err(playback_err) => println!("{}", playback_err),
